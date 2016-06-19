@@ -3,20 +3,27 @@ import numpy as np
 import random
 from nArmBandit import * 
 class NArmBanditEpsilonGreedy(NArmBandit):
-    def __init__(self, nArms = 10, epsilon= 0.1):
-        self.arm_selection_count = np.zeros(nArms);
+    def __init__(self, nArms, epsilon, **params):
+        # print nArms
+        # print 'epsilon=', epsilon
+        set_params(nArms = nArms, epsilon = epsilon)
         NArmBandit.__init__(self, nArms, epsilon)
+        self.reset(epsilon)
 
-    # def reset(self, epsilon= 0.1):
-    #   self.epsilon = epsilon
-    #   self.best_arm = 0;
-    #   for i in range(0,self.nArms):
-    #       self.arm_selection_count[i] = 0.0;
-    #       self.av_estimates[i] = 0.0;
-
+    #overridden
+    def set_params(self, nArms = 10, epsilon= 0.1, **params):
+        self.epsilon = epsilon
+        NArmBandit.set_params(self, nArms, **params)
+        
+    #overridden
+    def reset(self):
+        NArmBandit.reset(self)
+        self.arm_selection_count = np.zeros(self.nArms);
+        
     def shouldExplore(self):
         return random.random() <= self.epsilon
 
+    #overridden
     def choose_action(self):
         if self.shouldExplore():
             #chose one arm randomly
@@ -25,8 +32,9 @@ class NArmBanditEpsilonGreedy(NArmBandit):
             #chose best arm
             return self.best_arm;
 
-    #to be overridden
+    #overridden
     def get_alpha(self, arm):
         self.arm_selection_count[arm]+=1
         return 1.0/self.arm_selection_count[arm];
+
 

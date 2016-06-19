@@ -5,20 +5,21 @@ import numpy as np
 class NArmBandit:
     mu = 0.0;
     sigma = 1.0;    
-    def __init__(self, nArms = 10, epsilon= 0.1):
-        self.epsilon = epsilon
-        self.nArms = nArms
+    #to be overridden
+    def reset(self):
+        # self.epsilon = epsilon
         self.best_arm = 0;
-        self.nIterations = 1000
         self.av_estimates = np.zeros(self.nArms);
-        self.action_values = np.random.normal(self.mu,self.sigma, self.nArms);
 
-    # def reset(self, epsilon= 0.1):
-    #   self.epsilon = epsilon
-    #   self.best_arm = 0;
-    #   for i in range(0,self.nArms):
-    #       self.arm_selection_count[i] = 0.0;
-    #       self.av_estimates[i] = 0.0;
+    #to be overridden
+    def set_params(self, nArms= 10, **params):
+        self.nArms = nArms
+    
+    def __init__(self, nArms):
+        self.set_params(nArms)
+        self.action_values = np.random.normal(self.mu,self.sigma, self.nArms);
+        self.reset()        
+
     def print_state(self):
         print self.action_values 
         print self.av_estimates
@@ -40,9 +41,9 @@ class NArmBandit:
         if ( self.av_estimates[arm] > self.av_estimates[self.best_arm]):
             self.best_arm = arm;
     
-    def __call__(self):
+    def __call__(self, nIterations=1):
         rewards = [] 
-        for i in range(0,self.nIterations):
+        for i in range(0,nIterations):
             arm = self.choose_action();
             reward = self.get_reward(arm);  
             self.update_arm_value_estimate(arm, reward);

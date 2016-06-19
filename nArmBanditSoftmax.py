@@ -2,38 +2,40 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-
-from nArmBandit as NArmBandit
+import math
+from nArmBandit import NArmBandit
 
 class NArmBanditSoftmax(NArmBandit):
-	def __init__(self, nArms = 10, epsilon= 0.1, temperature = 1.0):
-		self.temperature = 1.0;
-		supoer.__init__(nArms, epsilon);
+    def __init__(self, nArms = 10, epsilon= 0.1, temperature = 0.5, **params ):
+        set_params(nArms, termperature, **params)
+        NArmBandit.__init__(self,nArms, epsilon);
+        self.reset(epsilon = epsilon, termperature = temperature)
 
-	def weighted_choice(self, choices):
-		total = sum(w for c, w in choices)
-		r = random.uniform(0, total)
-		upto = 0
-		for c, w in choices:
-			if upto + w >= r:
-				return c
-			upto += w
-		assert False, "Shouldn't get here"
+        #overridden
+    def set_params(self, nArms = 10, temperature= 0.5, **params):
+        self.temperature = temperature;
+        NArmBandit.set_params(self, nArms, **params)
 
-	def choose_action(self):
-		choices = [math.exp(1e, q/self.temperature) for q in self.av_estimates ]
-		choices = [i/sum(choices) for i in choices]
-		return = weighted_choice(choices):
-		
-	
-class nBanditTestbed:
-	bandits = []
-	def __init__(self, nBandits = 10, epsilon = 0.1):
-		self.nBandits = nBandits;
-		self.bandits = [nArmBandit(epsilon=epsilon) for i in range(0,self.nBandits)]
-	def reset(self, epsilon):
-			[self.bandits[i].reset(epsilon=epsilon) for i in range(0,self.nBandits)]
-	def __call__(self):
-		rewards = zip(*[self.bandits[i]() for i in range(0,self.nBandits)])
-		avg_rewards =  [np.mean(results) for results in rewards]
-		return avg_rewards
+    def reset(self):
+        NArmBandit.reset(self)
+        self.arm_selection_count = np.zeros(self.nArms);
+
+    def get_alpha(self, arm):
+        self.arm_selection_count[arm]+=1
+        return 1.0/self.arm_selection_count[arm];
+
+    def weighted_choice(self, choices):
+        total = sum(choices)
+        r = random.uniform(0, total)
+        upto = 0
+        for c, w in zip(range(0,len(choices)), choices):
+            if upto + w >= r:
+                return c
+            upto += w
+        assert False, "Shouldn't get here"
+
+    def choose_action(self):
+        choices = [math.exp(q/self.temperature) for q in self.av_estimates ]
+        total_sum = sum(choices)
+        choices = [i/total_sum for i in choices]
+        return self.weighted_choice(choices)
